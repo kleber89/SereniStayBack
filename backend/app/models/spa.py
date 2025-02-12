@@ -1,10 +1,11 @@
+from app.models.service import Service
 from pydantic import BaseModel, Field, field_validator
 from typing import List
 
 class Spa(BaseModel):
     title: str = Field(..., min_length=1, max_length=40)
     description: str = Field(..., min_length=1, max_length=350)
-    service: List[str] = Field(..., min_items=1, max_items=30)
+    service: List[Service] = Field(..., min_items=1, max_items=30)
     address: str = Field(..., min_length=1, max_length=30)
 
 
