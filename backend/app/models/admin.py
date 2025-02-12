@@ -1,23 +1,17 @@
-from pydantic import BaseModel, Field, EmailStr, model_validator
-from typing import Literal, Optional
-from uuid import UUID, uuid4
+from pydantic import model_validator, Field
+from typing import Literal
+from app.models.user import User_Base
 from passlib.context import CryptContext
+from uuid import UUID, uuid4
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-class Name(BaseModel):
-    first_name: str = Field(..., min_length=1, max_length=30)
-    second_name: Optional[str] = Field(None, min_length=1, max_length=30)
-    last_name: str = Field(..., min_length=1, max_length=30)
+class Admin_Base(User_Base):
+    permissions: list[str] = ["manage_users", "manage_services", "manage_spa"]
+    role: Literal["Admin"] = "Admin"
 
-class User_Base(BaseModel):
-    name: Name
-    email: EmailStr = Field(..., min_length=1, max_length=40)
-    address: Optional[str] = Field(None, min_length=5, max_length=30)
-    num_phone: str = Field(..., pattern=r'^\d{10}$')
-    role: Literal["User"] = "User"
 
-class Create_User(User_Base):
+class Create_Admin(Admin_Base):
     password: str = Field(..., min_length=8, max_length=30)
 
     @model_validator("password", mode="before")
@@ -26,7 +20,8 @@ class Create_User(User_Base):
 
         return pwd_context.hash(password)
     
-class User(User_Base):
+
+class Admin(Admin_Base):
     id: UUID = Field(default_factory=uuid4)
     hashed_password: str = Field(..., exclude=True)
 
@@ -41,3 +36,4 @@ class User(User_Base):
         if domain not in cls.allowed_domains:
             raise ValueError(f"The email must be from {cls.allowed_domains}")
         return email
+    
