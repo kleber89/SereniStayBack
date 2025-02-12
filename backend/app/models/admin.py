@@ -1,4 +1,4 @@
-from pydantic import model_validator, Field
+from pydantic import field_validator, Field
 from typing import Literal
 from app.models.user import User_Base
 from passlib.context import CryptContext
@@ -14,7 +14,7 @@ class Admin_Base(User_Base):
 class Create_Admin(Admin_Base):
     password: str = Field(..., min_length=8, max_length=30)
 
-    @model_validator("password", mode="before")
+    @field_validator("password", mode="before")
     def hash_password(cls, password: str) -> str:
         "Returns the hashed password"
 
@@ -27,7 +27,7 @@ class Admin(Admin_Base):
 
     allowed_domains = ["gmail.com"]
 
-    @model_validator("email", mode="before")
+    @field_validator("email", mode="before")
     def verify_email(cls, email: str) -> str:
         "Verify the email"
 

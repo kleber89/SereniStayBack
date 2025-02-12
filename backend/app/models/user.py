@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, EmailStr, model_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import Literal, Optional
 from uuid import UUID, uuid4
 from passlib.context import CryptContext
@@ -20,7 +20,7 @@ class User_Base(BaseModel):
 class Create_User(User_Base):
     password: str = Field(..., min_length=8, max_length=30)
 
-    @model_validator("password", mode="before")
+    @field_validator("password", mode="before")
     def hash_password(cls, password: str) -> str:
         "Returns the hashed password"
 
@@ -32,7 +32,7 @@ class User(User_Base):
 
     allowed_domains = ["gmail.com"]
 
-    @model_validator("email", mode="before")
+    @field_validator("email", mode="before")
     def verify_email(cls, email: str) -> str:
         "Verify the email"
 
