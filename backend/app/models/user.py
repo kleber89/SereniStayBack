@@ -30,6 +30,7 @@ class Create_User(User_Base):
 class User(User_Base):
     id: UUID = Field(default_factory=uuid4)
     hashed_password: str = Field(..., exclude=True)
+
     allowed_domains = ["gmail.com"]
 
     @field_validator("email")
@@ -39,5 +40,5 @@ class User(User_Base):
 
         domain = email.split("@")[-1]
         if domain not in cls.allowed_domains:
-            raise ValueError("The email must be from {}".format(cls.allowed_domains))
+            raise ValueError(f"The email must be from {cls.allowed_domains}")
         return email
