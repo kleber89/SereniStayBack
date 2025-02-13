@@ -41,3 +41,9 @@ class User(User_Base):
         if domain not in cls.allowed_domains:
             raise ValueError(f"The email must be from {cls.allowed_domains}")
         return email
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    Verifica si la contraseña ingresada coincide con la contraseña hasheada.
+    """
+    return pwd_context.verify(plain_password, hashed_password)
