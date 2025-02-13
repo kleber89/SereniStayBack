@@ -1,1 +1,4 @@
-passlib = 1.7.4
+passlib[bcrypt]
+pydantic==2.10.6
+pymongo==4.11.1
+FastAPI==0.115.8
