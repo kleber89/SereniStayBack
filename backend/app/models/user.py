@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import Literal, Optional
 from uuid import UUID, uuid4
 from passlib.context import CryptContext
+from base_model import BaseEntity
+from typing import ClassVar
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -10,7 +12,7 @@ class Name(BaseModel):
     second_name: Optional[str] = Field(None, min_length=1, max_length=30)
     last_name: str = Field(..., min_length=1, max_length=30)
 
-class User_Base(BaseModel):
+class User_Base(BaseEntity):
     name: Name
     email: EmailStr = Field(..., min_length=1, max_length=40)
     address: Optional[str] = Field(None, min_length=5, max_length=30)
@@ -18,7 +20,7 @@ class User_Base(BaseModel):
     role: Literal["User"] = "User"
 
 class Create_User(User_Base):
-    password: str = Field(..., min_length=8, max_length=30)
+    password: str = Field(..., min_length=8, max_length=60)
 
     @field_validator("password", mode="before")
     def hash_password(cls, password: str) -> str:
@@ -30,7 +32,7 @@ class User(User_Base):
     id: UUID = Field(default_factory=uuid4)
     hashed_password: str = Field(..., exclude=True)
 
-    allowed_domains = ["gmail.com"]
+    allowed_domains: ClassVar[list[str]] = ["gmail.com"]
 
     @field_validator("email", mode="before")
     def verify_email(cls, email: str) -> str:
