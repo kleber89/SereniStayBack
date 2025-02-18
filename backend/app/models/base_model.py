@@ -2,11 +2,12 @@ from motor.motor_asyncio import AsyncIOMotorCollection
 from pydantic import BaseModel, Field
 from uuid import UUID, uuid4
 import pendulum
+from datetime import datetime, timezone
 
 class BaseEntity(BaseModel):
     id: UUID = Field(default_factory=uuid4)
-    created_at: str = Field(default_factory=lambda: pendulum.now("UTC").to_iso8601_string())
-    updated_at: str = Field(default_factory=lambda: pendulum.now("UTC").to_iso8601_string())
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
     def update_timestamp(self):
