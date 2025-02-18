@@ -1,23 +1,21 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from app.services import facade
-from datetime import timedeltal
+from datetime import timedelta
 from fastapi_jwt_auth import AuthJWT
-import jwt
+from app.services import facade
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-# Modelo para la petición de inicio de sesión
+# Modelos de solicitud y respuesta para el login
 class LoginRequest(BaseModel):
     email: str
     password: str
 
-# Modelo para la respuesta con el token
 class LoginResponse(BaseModel):
     access_token: str
 
-# Configuración del JWT(sello para el token)
+# Configuración del JWT
 class Settings(BaseModel):
     authjwt_secret_key: str = "supersecret"
 
@@ -30,8 +28,8 @@ def login(credentials: LoginRequest, Authorize: AuthJWT = Depends()):
     """
     Autentica al usuario y devuelve un token JWT.
     """
-    user = facade.get_user_by_email(como se van a llamr en la bse de datos.email)
-    
+    user = facade.get_user_by_email(credentials.email)  # Corregido aquí
+
     if not user or not user.verify_password(credentials.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -49,4 +47,4 @@ def protected(Authorize: AuthJWT = Depends()):
     """
     Authorize.jwt_required()
     current_user = Authorize.get_jwt_subject()
-    return {"message": f"Hello, user {current_user['id']}"}
+    return {"message": f"Hello, user {current_user['id']}"}  
