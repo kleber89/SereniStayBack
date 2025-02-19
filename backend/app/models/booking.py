@@ -1,6 +1,6 @@
 from pydantic import Field, field_validator, ValidationError
 from typing import List
-from uuid import UUID, uuid4
+from uuid import UUID
 from datetime import datetime, timezone
 from app.models.base_model import BaseEntity
 from app.models.service import Service

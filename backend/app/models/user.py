@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import Literal, Optional
 from passlib.context import CryptContext
 from typing import ClassVar
-from base_model import BaseEntity
+from app.models.base_model import BaseEntity
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

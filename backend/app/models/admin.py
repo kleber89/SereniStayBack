@@ -1,7 +1,7 @@
 from pydantic import field_validator, Field, BaseModel, EmailStr
 from typing import Literal, Optional
-from user import Name
-from base_model import BaseEntity
+from app.models.user import Name
+from app.models.base_model import BaseEntity
 from passlib.context import CryptContext
 from typing import ClassVar
 

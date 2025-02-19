@@ -1,6 +1,7 @@
-from app import db
+from app.db import db
 from abc import ABC, abstractmethod
-from bson import ObjectId #For queries with _id
+from uuid import UUID
+from motor.motor_asyncio import AsyncIOMotorClient
 
 class Repository(ABC):
     "Abstract methods, the subclasses will inherit them and each one must implement these methods"
@@ -9,27 +10,23 @@ class Repository(ABC):
         self.collection = db[collection_name]
 
     @abstractmethod
-    def get(self, obj_id):
+    async def add(self, obj):
+        pass
+    
+    @abstractmethod
+    async def get_all(self):
         pass
 
     @abstractmethod
-    def get_all(self):
+    async def update(self, obj_id, data):
         pass
 
     @abstractmethod
-    def add(self, obj):
+    async def delete(self, obj_id):
         pass
 
     @abstractmethod
-    def update(self, obj_id, data):
-        pass
-
-    @abstractmethod
-    def delete(self, obj_id):
-        pass
-
-    @abstractmethod
-    def get_by_attribute(self, attr_name, attr_value):
+    async def get_by_attribute(self, attr_name, attr_value):
         pass
 
 
@@ -37,38 +34,122 @@ class UserRepository(Repository):
     def __init__(self):
         super().__init__('users')
 
-    def get(self, obj_id):
-        return self.collection.find_one({"_id": ObjectId(obj_id)})
+    async def get_by_attribute(self, attr_name, attr_value):
+        return await self.collection.find_one({attr_name: attr_value})
 
-    def get_all(self):
-        return list(self.collection.find())
+    async def get_all(self):
+        return [doc async for doc in self.collection.find()]
 
-    def add(self, obj):
-        return self.collection.insert_one(obj).inserted_id
+    async def add(self, obj):
+        obj["_id"] = str(obj["id"]) #this save the id how string in MongoDB
+        result = await self.collection.insert_one(obj)
+        return result.inserted_id
 
-    def update(self, obj_id, data):
-        return self.collection.update_one(
-            {"_id": ObjectId(obj_id)},
+    async def update(self, obj_id: UUID, data):
+        return await self.collection.update_one(
+            {"_id": str(obj_id)},
             {"$set": data}
         )
 
-    def delete(self, obj_id):
-        return self.collection.delete_one({"_id": ObjectId(obj_id)})
-
-    def get_by_attribute(self, attr_name, attr_value):
-        pass
+    async def delete(self, obj_id: UUID):
+        return await self.collection.delete_one({"_id": str(obj_id)})
 
 
-class AdminRepository(UserRepository):
+
+class AdminRepository(Repository):
     def __init__(self):
         super().__init__('admins')
 
+    async def get_by_attribute(self, attr_name, attr_value):
+        return await self.collection.find_one({attr_name: attr_value})
 
-class SpaRepository(UserRepository):
+    async def get_all(self):
+        return [doc async for doc in self.collection.find()]
+
+    async def add(self, obj):
+        obj["_id"] = str(obj["id"])
+        result = await self.collection.insert_one(obj)
+        return result.inserted_id
+
+    async def update(self, obj_id: UUID, data):
+        return await self.collection.update_one(
+            {"_id": str(obj_id)},
+            {"$set": data}
+        )
+
+    async def delete(self, obj_id: UUID):
+        return await self.collection.delete_one({"_id": str(obj_id)})
+
+class SpaRepository(Repository):
     def __init__(self):
         super().__init__('spas')
 
+    async def get_by_attribute(self, attr_name, attr_value):
+        return await self.collection.find_one({attr_name: attr_value})
 
-class ServiceRepository(UserRepository):
+    async def get_all(self):
+        return [doc async for doc in self.collection.find()]
+
+    async def add(self, obj):
+        obj["_id"] = str(obj["id"])
+        result = await self.collection.insert_one(obj)
+        return result.inserted_id
+
+    async def update(self, obj_id: UUID, data):
+        return await self.collection.update_one(
+            {"_id": str(obj_id)},
+            {"$set": data}
+        )
+
+    async def delete(self, obj_id: UUID):
+        return await self.collection.delete_one({"_id": str(obj_id)})
+
+
+class ServiceRepository(Repository):
     def __init__(self):
         super().__init__('services')
+
+    async def get_by_attribute(self, attr_name, attr_value):
+        return await self.collection.find_one({attr_name: attr_value})
+
+    async def get_all(self):
+        return [doc async for doc in self.collection.find()]
+
+    async def add(self, obj):
+        obj["_id"] = str(obj["id"])
+        result = await self.collection.insert_one(obj)
+        return result.inserted_id
+
+    async def update(self, obj_id: UUID, data):
+        return await self.collection.update_one(
+            {"_id": str(obj_id)},
+            {"$set": data}
+        )
+
+    async def delete(self, obj_id: UUID):
+        return await self.collection.delete_one({"_id": str(obj_id)})
+
+
+class BookingRepository(Repository):
+    def __init__(self):
+        super().__init__('bookings')
+
+    async def get_by_attribute(self, attr_name, attr_value):
+        return await self.collection.find_one({attr_name: attr_value})
+
+    async def get_all(self):
+        return [doc async for doc in self.collection.find()]
+
+    async def add(self, obj):
+        obj["_id"] = str(obj["id"])
+        result = await self.collection.insert_one(obj)
+        return result.inserted_id
+
+    async def update(self, obj_id: UUID, data):
+        return await self.collection.update_one(
+            {"_id": str(obj_id)},
+            {"$set": data}
+        )
+
+    async def delete(self, obj_id: UUID):
+        return await self.collection.delete_one({"_id": str(obj_id)})
