@@ -2,6 +2,7 @@ from app.db import db
 from abc import ABC, abstractmethod
 from uuid import UUID
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import PyMongoError
 
 class Repository(ABC):
     "Abstract methods, the subclasses will inherit them and each one must implement these methods"
@@ -52,7 +53,13 @@ class UserRepository(Repository):
         )
 
     async def delete(self, obj_id: UUID):
-        return await self.collection.delete_one({"_id": str(obj_id)})
+        try:
+            result = await self.collection.delete_one({"_id": str(obj_id)})
+            if result.deleted_count == 0:
+                raise ValueError("El objeto no fue encontrado o ya había sido eliminado.")
+            return {"success": "El objeto fue eliminado correctamente"}
+        except PyMongoError as e:
+            raise RuntimeError(f"Error en la base de datos: {str(e)}")
 
 
 
@@ -78,7 +85,13 @@ class AdminRepository(Repository):
         )
 
     async def delete(self, obj_id: UUID):
-        return await self.collection.delete_one({"_id": str(obj_id)})
+        try:
+            result = await self.collection.delete_one({"_id": str(obj_id)})
+            if result.deleted_count == 0:
+                raise ValueError("El objeto no fue encontrado o ya había sido eliminado.")
+            return {"success": "El objeto fue eliminado correctamente"}
+        except PyMongoError as e:
+            raise RuntimeError(f"Error en la base de datos: {str(e)}")
 
 class SpaRepository(Repository):
     def __init__(self):
@@ -102,7 +115,13 @@ class SpaRepository(Repository):
         )
 
     async def delete(self, obj_id: UUID):
-        return await self.collection.delete_one({"_id": str(obj_id)})
+        try:
+            result = await self.collection.delete_one({"_id": str(obj_id)})
+            if result.deleted_count == 0:
+                raise ValueError("El objeto no fue encontrado o ya había sido eliminado.")
+            return {"success": "El objeto fue eliminado correctamente"}
+        except PyMongoError as e:
+            raise RuntimeError(f"Error en la base de datos: {str(e)}")
 
 
 class ServiceRepository(Repository):
@@ -127,7 +146,13 @@ class ServiceRepository(Repository):
         )
 
     async def delete(self, obj_id: UUID):
-        return await self.collection.delete_one({"_id": str(obj_id)})
+        try:
+            result = await self.collection.delete_one({"_id": str(obj_id)})
+            if result.deleted_count == 0:
+                raise ValueError("El objeto no fue encontrado o ya había sido eliminado.")
+            return {"success": "El objeto fue eliminado correctamente"}
+        except PyMongoError as e:
+            raise RuntimeError(f"Error en la base de datos: {str(e)}")
 
 
 class BookingRepository(Repository):
@@ -152,4 +177,10 @@ class BookingRepository(Repository):
         )
 
     async def delete(self, obj_id: UUID):
-        return await self.collection.delete_one({"_id": str(obj_id)})
+        try:
+            result = await self.collection.delete_one({"_id": str(obj_id)})
+            if result.deleted_count == 0:
+                raise ValueError("El objeto no fue encontrado o ya había sido eliminado.")
+            return {"success": "El objeto fue eliminado correctamente"}
+        except PyMongoError as e:
+            raise RuntimeError(f"Error en la base de datos: {str(e)}")
