@@ -63,35 +63,6 @@ class UserRepository(Repository):
 
 
 
-class AdminRepository(Repository):
-    def __init__(self):
-        super().__init__('admins')
-
-    async def get_by_attribute(self, attr_name, attr_value):
-        return await self.collection.find_one({attr_name: attr_value})
-
-    async def get_all(self):
-        return [doc async for doc in self.collection.find()]
-
-    async def add(self, obj):
-        obj["_id"] = str(obj["id"])
-        result = await self.collection.insert_one(obj)
-        return result.inserted_id
-
-    async def update(self, obj_id: UUID, data):
-        return await self.collection.update_one(
-            {"_id": str(obj_id)},
-            {"$set": data}
-        )
-
-    async def delete(self, obj_id: UUID):
-        try:
-            result = await self.collection.delete_one({"_id": str(obj_id)})
-            if result.deleted_count == 0:
-                raise ValueError("El objeto no fue encontrado o ya había sido eliminado.")
-            return {"success": "El objeto fue eliminado correctamente"}
-        except PyMongoError as e:
-            raise RuntimeError(f"Error en la base de datos: {str(e)}")
 
 class SpaRepository(Repository):
     def __init__(self):
@@ -184,3 +155,4 @@ class BookingRepository(Repository):
             return {"success": "El objeto fue eliminado correctamente"}
         except PyMongoError as e:
             raise RuntimeError(f"Error en la base de datos: {str(e)}")
+        

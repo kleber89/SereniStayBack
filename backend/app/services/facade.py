@@ -1,10 +1,8 @@
 from app.persistence.repository_interface import (
-    UserRepository, AdminRepository,
-    ServiceRepository, SpaRepository,
-    BookingRepository)
+    UserRepository, ServiceRepository,
+    SpaRepository, BookingRepository)
 from app.models.user import User
-from app.models.admin import Admin
-from app.models.spa import Spa
+from app.models.spa import Spa, CreateSpa
 from app.models.service import Service
 from app.models.booking import Booking
 from uuid import UUID
@@ -13,7 +11,6 @@ from uuid import UUID
 class Facade:
     def __init__(self):
         self.user_db = UserRepository()
-        self.admin_db = AdminRepository()
         self.spa_db = SpaRepository()
         self.service_db = ServiceRepository()
         self.booking_db = BookingRepository()
@@ -35,12 +32,6 @@ class Facade:
     async def get_all_users(self):
         return await self.user_db.get_all()
     
-    #async def delete_user(self, user_id: UUID):
-     #   try:
-      #      return await self.user_db.delete({"_id": str(user_id)})
-       # except Exception as e:
-        #    raise ValueError(f"Error deleting user: {str(e)}")
-    
     async def delete_user(self, user_id: UUID):
         try:
             return await self.user_db.delete(user_id)
@@ -48,44 +39,33 @@ class Facade:
             return {"error": str(e)}
         except Exception as e:
             return {"error": str(e)}
+        
+    async def authenticate_user(self, email: str, password: str):
+        """
+        Search the user in the database and verify the password.
+        """
+        user_dict = await self.user_db.get_by_attribute("email", email)
 
+        if not user_dict:
+            return None
 
+        if isinstance(user_dict, dict) and "user" in user_dict:
+            user_dict = user_dict["user"]
 
-# ___________________________________Admin______________________________________________________
+        required_fields = {"email", "hashed_password"}
+        if not required_fields.issubset(user_dict.keys()):
+            return None
 
-    async def create_admin(self, admin_data):
-        admin = Admin(**admin_data)
-        return await self.admin_db.add(admin.model_dump())
-    
-    async def update_admin(self, admin_id: UUID, admin_data):
-        return await self.admin_db.update(admin_id, admin_data)
-    
-    async def delete_user(self, admin_id: UUID):
         try:
-            return await self.admin_db.delete(admin_id)
-        except ValueError as e:
-            return {"error": str(e)}
+            user_model = User(**user_dict)
+
         except Exception as e:
-            return {"error": str(e)}
+            return None
 
+        if not user_model.verify_password(password, user_model.hashed_password):
+            return None
 
-
-# ___________________________________Spa______________________________________________________
-
-    async def create_spa(self, spa_data):
-        spa = Spa(**spa_data)
-        return await self.spa_db.add(spa.model_dump())
-    
-    async def update_spa(self, spa_id: UUID, spa_data):
-        return await self.spa_db.update(spa_id, spa_data)
-    
-    async def delete_user(self, spa_id: UUID):
-        try:
-            return await self.spa_db.delete(spa_id)
-        except ValueError as e:
-            return {"error": str(e)}
-        except Exception as e:
-            return {"error": str(e)}
+        return user_model
 
 
 
@@ -98,7 +78,7 @@ class Facade:
     async def update_service(self, service_id: UUID, service_data):
         return await self.service_db.update(service_id, service_data)
     
-    async def delete_user(self, service_id: UUID):
+    async def delete_service(self, service_id: UUID):
         try:
             return await self.service_db.delete(service_id)
         except ValueError as e:
@@ -123,7 +103,7 @@ class Facade:
     async def update_booking(self, booking_id: UUID, booking_data):
         return await self.booking_db.update(booking_id, booking_data)
     
-    async def delete_user(self, booking_id: UUID):
+    async def delete_booking(self, booking_id: UUID):
         try:
             return await self.booking_db.delete(booking_id)
         except ValueError as e:
@@ -131,3 +111,13 @@ class Facade:
         except Exception as e:
             return {"error": str(e)}
 
+
+# ___________________________________Spa______________________________________________________
+
+    async def create_spa(self, spa_data: CreateSpa, owner_id: str):
+            """Create a new spa and store it in the database"""
+            spa_dict = spa_data.model_dump()
+            spa_dict["owner_id"] = owner_id
+
+            new_spa = Spa(**spa_dict)
+            return await self.db.insert("spas", new_spa.model_dump())
