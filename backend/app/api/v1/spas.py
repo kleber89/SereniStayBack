@@ -7,13 +7,19 @@ from typing import List, Dict, Any
 router = APIRouter()
 facade = Facade()
 
-@router.post("/spas", response_model=Spa)
-@router.post("/spas", response_model=Spa)
-async def create_spa(spa_data: CreateSpa, current_user=Depends(require_owner)):
-    """Create a new spa (Only Owners)"""
-    spa_data.owner_id = str(current_user.id)
-    new_spa = await facade.create_spa(spa_data, str(current_user.id))
-    return new_spa
+#@router.post("/create_spa", response_model=Spa)   AQUI YA SE PUEDE CREAR EL SPA, PERO FALTA VERIFICAR EL ROL
+#async def create_spa(spa: CreateSpa):
+#    await facade.spa_db.add(spa.model_dump())
+#    return spa
+
+@router.post("/create_spa", response_model=Spa)
+async def create_spa(spa: CreateSpa, current_user=Depends(require_owner)):  # solo Owners pueden crear
+    if current_user.role != "Owner":  # Verificamos el rol
+        raise HTTPException(status_code=403, detail="Only Owners can create spas")
+    
+    spa.owner_id = str(current_user.id)  # Asignamos el owner_id
+    return await facade.create_spa(spa.model_dump())
+
 
 @router.get("/spas", response_model=List[Spa])
 async def list_spas():

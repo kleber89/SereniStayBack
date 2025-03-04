@@ -114,10 +114,11 @@ class Facade:
 
 # ___________________________________Spa______________________________________________________
 
-    async def create_spa(self, spa_data: CreateSpa, owner_id: str):
-            """Create a new spa and store it in the database"""
-            spa_dict = spa_data.model_dump()
-            spa_dict["owner_id"] = owner_id
+    async def create_spa(self, spa_data: dict):
+        """Create a new spa and return the full object"""
+        spa = Spa(**spa_data)
+        spa_id = await self.spa_db.add(spa.model_dump())  # Guardar y obtener el ID
 
-            new_spa = Spa(**spa_dict)
-            return await self.db.insert("spas", new_spa.model_dump())
+        # Recuperar el spa completo desde la BD
+        return await self.spa_db.get_by_attribute("_id", spa_id)  # Asegurar que devuelve un Spa
+
