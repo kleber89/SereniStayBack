@@ -7,7 +7,7 @@ from typing import List
 router = APIRouter()
 facade = Facade()
 
-@router.get("/users", response_model=List[User])
+@router.get("/api/v1/users", response_model=List[User])
 async def list_all_users(current_user: User = Depends(require_owner), facade: Facade = Depends()):
     """List all users"""
 

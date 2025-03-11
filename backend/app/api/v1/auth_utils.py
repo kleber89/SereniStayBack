@@ -52,7 +52,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), facade: Facade =
             print("Error: Missing email or role in token")
             raise credentials_exception
 
-        user_data = await facade.get_user_by_attribute("email", email)
+        user_data = await facade.get_user_by_id("email", email)
 
         if not user_data:
             print(f"Error: User with email {email} not found")

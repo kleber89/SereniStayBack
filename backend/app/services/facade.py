@@ -26,7 +26,7 @@ class Facade:
     async def update_user(self, user_id: UUID, user_data):
         return await self.user_db.update(str(user_id), user_data)
     
-    async def get_user_by_attribute(self, attr_name, attr_value):
+    async def get_user_by_id(self, attr_name, attr_value):
         return await self.user_db.get_by_attribute(attr_name, attr_value)
     
     async def get_all_users(self):
@@ -95,12 +95,30 @@ class Facade:
         return await self.booking_db.add(booking.model_dump())
     
     async def get_booking_by_id(self, booking_id: UUID):
+        """search a booking by id"""
         return await self.booking_db.get_by_id(str(booking_id))
     
     async def get_all_bookings(self):
+        """show all bookings"""
+
+        # bookings = await self.booking_db.get_all()
+
+        # filtered_bookings = []
+        # for booking in bookings
+
         return await self.booking_db.get_all()
-    
+
     async def update_booking(self, booking_id: UUID, booking_data):
+        existing_booking = await self.booking_db.get_by_id(str(booking_id))
+        if not existing_booking:
+            return {"error": "Booking not found"}
+    
+        current_status = existing_booking.get("status")
+        new_status = booking_data.get("status")
+    
+        if new_status and current_status == "cancelled":
+            return {"error": "Cannot modify a cancelled booking"}
+    
         return await self.booking_db.update(booking_id, booking_data)
     
     async def delete_booking(self, booking_id: UUID):
@@ -116,9 +134,16 @@ class Facade:
 
     async def create_spa(self, spa_data: dict):
         """Create a new spa and return the full object"""
+
         spa = Spa(**spa_data)
         spa_id = await self.spa_db.add(spa.model_dump())  # Guardar y obtener el ID
 
         # Recuperar el spa completo desde la BD
-        return await self.spa_db.get_by_attribute("_id", spa_id)  # Asegurar que devuelve un Spa
+        return await self.spa_db.get_by_attribute("id", spa_id)  # Asegurar que devuelve un Spa
+    
 
+    async def list_spas(self):
+        """Show all spas"""
+
+        return await self.spa_db.get_all()
+    

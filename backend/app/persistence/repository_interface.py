@@ -42,19 +42,19 @@ class UserRepository(Repository):
         return [doc async for doc in self.collection.find()]
 
     async def add(self, obj):
-        obj["_id"] = str(obj["id"]) #this save the id how string in MongoDB
-        result = await self.collection.insert_one(obj)
-        return result.inserted_id
+        obj["id"] = str(obj["id"]) #this save the id how string in MongoDB
+        await self.collection.insert_one(obj)
+        return obj["id"]
 
     async def update(self, obj_id: UUID, data):
         return await self.collection.update_one(
-            {"_id": str(obj_id)},
+            {"id": str(obj_id)},
             {"$set": data}
         )
 
     async def delete(self, obj_id: UUID):
         try:
-            result = await self.collection.delete_one({"_id": str(obj_id)})
+            result = await self.collection.delete_one({"id": str(obj_id)})
             if result.deleted_count == 0:
                 raise ValueError("El objeto no fue encontrado o ya había sido eliminado.")
             return {"success": "El objeto fue eliminado correctamente"}
@@ -75,24 +75,24 @@ class SpaRepository(Repository):
         return [doc async for doc in self.collection.find()]
 
     async def add(self, obj):
-        obj["_id"] = str(obj["id"])
-        result = await self.collection.insert_one(obj)
-        return result.inserted_id
+        obj["id"] = str(obj["id"])
+        await self.collection.insert_one(obj)
+        return obj["id"]
 
     async def update(self, obj_id: UUID, data):
         return await self.collection.update_one(
-            {"_id": str(obj_id)},
+            {"id": str(obj_id)},
             {"$set": data}
         )
 
     async def delete(self, obj_id: UUID):
         try:
-            result = await self.collection.delete_one({"_id": str(obj_id)})
+            result = await self.collection.delete_one({"id": str(obj_id)})
             if result.deleted_count == 0:
-                raise ValueError("El objeto no fue encontrado o ya había sido eliminado.")
-            return {"success": "El objeto fue eliminado correctamente"}
+                raise ValueError("The object was not found or had already been deleted.")
+            return {"success": "The object was successfully removed"}
         except PyMongoError as e:
-            raise RuntimeError(f"Error en la base de datos: {str(e)}")
+            raise RuntimeError(f"Error in the database: {str(e)}")
 
 
 class ServiceRepository(Repository):
@@ -106,24 +106,24 @@ class ServiceRepository(Repository):
         return [doc async for doc in self.collection.find()]
 
     async def add(self, obj):
-        obj["_id"] = str(obj["id"])
-        result = await self.collection.insert_one(obj)
-        return result.inserted_id
+        obj["id"] = str(obj["id"])
+        await self.collection.insert_one(obj)
+        return obj["id"]
 
     async def update(self, obj_id: UUID, data):
         return await self.collection.update_one(
-            {"_id": str(obj_id)},
+            {"id": str(obj_id)},
             {"$set": data}
         )
 
     async def delete(self, obj_id: UUID):
         try:
-            result = await self.collection.delete_one({"_id": str(obj_id)})
+            result = await self.collection.delete_one({"id": str(obj_id)})
             if result.deleted_count == 0:
-                raise ValueError("El objeto no fue encontrado o ya había sido eliminado.")
-            return {"success": "El objeto fue eliminado correctamente"}
+                raise ValueError("The object was not found or had already been deleted.")
+            return {"success": "The object was successfully removed"}
         except PyMongoError as e:
-            raise RuntimeError(f"Error en la base de datos: {str(e)}")
+            raise RuntimeError(f"Error in the database: {str(e)}")
 
 
 class BookingRepository(Repository):
@@ -137,22 +137,31 @@ class BookingRepository(Repository):
         return [doc async for doc in self.collection.find()]
 
     async def add(self, obj):
-        obj["_id"] = str(obj["id"])
-        result = await self.collection.insert_one(obj)
-        return result.inserted_id
+        obj["id"] = str(obj["id"])
+        await self.collection.insert_one(obj)
+        return obj["id"]
 
     async def update(self, obj_id: UUID, data):
         return await self.collection.update_one(
-            {"_id": str(obj_id)},
+            {"id": str(obj_id)},
             {"$set": data}
         )
 
     async def delete(self, obj_id: UUID):
         try:
-            result = await self.collection.delete_one({"_id": str(obj_id)})
+            result = await self.collection.delete_one({"id": str(obj_id)})
             if result.deleted_count == 0:
-                raise ValueError("El objeto no fue encontrado o ya había sido eliminado.")
-            return {"success": "El objeto fue eliminado correctamente"}
+                raise ValueError("The object was not found or had already been deleted.")
+            return {"success": "The object was successfully removed"}
         except PyMongoError as e:
-            raise RuntimeError(f"Error en la base de datos: {str(e)}")
+            raise RuntimeError(f"Error in the database: {str(e)}")
         
+
+    async def cancel_booking(self, booking_id: UUID):
+        """Cancel a reservation by changing its status to 'cancelled'"""
+        
+        result = await self.collection.update_one(
+            {"id": str(booking_id)},
+            {"$set": {"status": "cancelled"}}
+        )
+        return result.modified_count > 0
