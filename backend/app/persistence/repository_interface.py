@@ -100,7 +100,9 @@ class ServiceRepository(Repository):
         super().__init__('services')
 
     async def get_by_attribute(self, attr_name, attr_value):
-        return await self.collection.find_one({attr_name: attr_value})
+        return [doc async for doc in self.collection.find({attr_name: attr_value})]
+
+    
 
     async def get_all(self):
         return [doc async for doc in self.collection.find()]
@@ -111,10 +113,12 @@ class ServiceRepository(Repository):
         return obj["id"]
 
     async def update(self, obj_id: UUID, data):
-        return await self.collection.update_one(
+        result = await self.collection.update_one(
             {"id": str(obj_id)},
             {"$set": data}
         )
+        
+        return result.modified_count > 0
 
     async def delete(self, obj_id: UUID):
         try:
@@ -130,16 +134,22 @@ class BookingRepository(Repository):
     def __init__(self):
         super().__init__('bookings')
 
+
+    async def add(self, booking_data):
+        """Insert a new booking into the database."""
+        booking_data["id"] = str(booking_data["id"])
+        
+        result = await self.collection.insert_one(booking_data)
+        return str(result.inserted_id)
+    
+
     async def get_by_attribute(self, attr_name, attr_value):
         return await self.collection.find_one({attr_name: attr_value})
 
     async def get_all(self):
         return [doc async for doc in self.collection.find()]
 
-    async def add(self, obj):
-        obj["id"] = str(obj["id"])
-        await self.collection.insert_one(obj)
-        return obj["id"]
+
 
     async def update(self, obj_id: UUID, data):
         return await self.collection.update_one(
@@ -157,11 +167,11 @@ class BookingRepository(Repository):
             raise RuntimeError(f"Error in the database: {str(e)}")
         
 
-    async def cancel_booking(self, booking_id: UUID):
+    async def cancel_booking(self, booking_id: str):
         """Cancel a reservation by changing its status to 'cancelled'"""
         
         result = await self.collection.update_one(
-            {"id": str(booking_id)},
+            {"id": booking_id},
             {"$set": {"status": "cancelled"}}
         )
         return result.modified_count > 0

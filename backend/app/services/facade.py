@@ -2,10 +2,12 @@ from app.persistence.repository_interface import (
     UserRepository, ServiceRepository,
     SpaRepository, BookingRepository)
 from app.models.user import User
-from app.models.spa import Spa, CreateSpa
+from app.models.spa import Spa
 from app.models.service import Service
 from app.models.booking import Booking
 from uuid import UUID
+from typing import List
+from bson import Binary
 
 
 class Facade:
@@ -75,6 +77,14 @@ class Facade:
         service = Service(**service_data)
         return await self.service_db.add(service.model_dump())
     
+    async def create_multiple_services(self, services: List[dict]):
+        """Guarda múltiples servicios en la base de datos"""
+        service_ids = []
+        for service in services:
+            service_id = await self.service_db.add(service)  # Guarda cada servicio
+            service_ids.append(service_id)
+        return {"message": "Services created successfully", "service_ids": service_ids}
+    
     async def update_service(self, service_id: UUID, service_data):
         return await self.service_db.update(service_id, service_data)
     
@@ -121,9 +131,9 @@ class Facade:
     
         return await self.booking_db.update(booking_id, booking_data)
     
-    async def delete_booking(self, booking_id: UUID):
+    async def delete_booking(self, booking_id: str):
         try:
-            return await self.booking_db.delete(booking_id)
+            return await self.booking_db.cancel_booking(booking_id)
         except ValueError as e:
             return {"error": str(e)}
         except Exception as e:
@@ -133,17 +143,30 @@ class Facade:
 # ___________________________________Spa______________________________________________________
 
     async def create_spa(self, spa_data: dict):
-        """Create a new spa and return the full object"""
-
+        services = spa_data.pop("services", [])  # Extraer servicios antes de validar
         spa = Spa(**spa_data)
-        spa_id = await self.spa_db.add(spa.model_dump())  # Guardar y obtener el ID
+        spa_id = await self.spa_db.add(spa.model_dump())  # Guardar spa y obtener ID
+    
+        # Guardar los servicios en la colección de servicios con referencia al spa
+        for service in services:
+            service["spa_id"] = spa_id  # Agregar referencia al spa
+            await self.service_db.add(service)
+    
+        return await self.spa_db.get_by_attribute("id", spa_id)
 
-        # Recuperar el spa completo desde la BD
-        return await self.spa_db.get_by_attribute("id", spa_id)  # Asegurar que devuelve un Spa
+
     
 
     async def list_spas(self):
-        """Show all spas"""
+        """Show all spas with their services"""
+        spas = await self.spa_db.get_all()
 
-        return await self.spa_db.get_all()
-    
+        for spa in spas:
+            services = await self.service_db.get_by_attribute("spa_id", spa["id"])  # Comparación correcta
+
+            print(f"Servicios para {spa['id']}: {services}")
+            
+            spa["services"] = services  # Agregamos los servicios al spa
+
+        return spas
+

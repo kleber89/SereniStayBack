@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, EmailStr, field_validator
 from typing import Literal, Optional, ClassVar
 from passlib.context import CryptContext
 from app.models.base_model import BaseEntity
+from uuid import UUID, uuid4
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -9,6 +10,31 @@ class Name(BaseModel):
     first_name: str = Field(..., min_length=1, max_length=30)
     second_name: Optional[str] = Field(None, min_length=1, max_length=30)
     last_name: str = Field(..., min_length=1, max_length=30)
+
+
+    @field_validator("first_name")
+    @classmethod
+    def verify_first_name(cls, value):
+        """
+        Verifying that first_name only receives 1 argument
+        """
+
+        if " " in value:
+            raise ValueError("first_name should contain only one word")
+        return value
+    
+
+    @field_validator("second_name")
+    @classmethod
+    def verify_second_name(cls, value):
+        """
+        Verifying that second_name only receives 1 argument
+        """
+
+        if value is not None and " " in value:
+            raise ValueError("second_name should contain only one word")
+        return value
+    
 
 class User_Base(BaseEntity):
     name: Name
@@ -27,6 +53,7 @@ class User_Base(BaseEntity):
         if domain not in cls.allowed_domains:
             raise ValueError(f"The email must be from {cls.allowed_domains}")
         return email
+    
 
 class Create_User(User_Base):
     password: str = Field(..., min_length=8, max_length=60)
