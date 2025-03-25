@@ -1,13 +1,14 @@
 from app.persistence.repository_interface import (
     UserRepository, ServiceRepository,
-    SpaRepository, BookingRepository)
+    SpaRepository, BookingRepository, ReviewRepository)
 from app.models.user import User
 from app.models.spa import Spa
 from app.models.service import Service
 from app.models.booking import Booking
+from app.models.review import Review
 from uuid import UUID
 from typing import List
-from bson import Binary
+from fastapi import HTTPException
 
 
 class Facade:
@@ -16,6 +17,7 @@ class Facade:
         self.spa_db = SpaRepository()
         self.service_db = ServiceRepository()
         self.booking_db = BookingRepository()
+        self.review_db = ReviewRepository()
 
 
 
@@ -155,18 +157,26 @@ class Facade:
         return await self.spa_db.get_by_attribute("id", spa_id)
 
 
+
+
+# ___________________________________Review______________________________________________________
+
+    async def create_review(self, text):
+        """create a review"""
+
+        review = Review(**text)  # BaseEntity ya genera el id
+
+        # Guardar en MongoDB
+        review_id = await self.review_db.add(review.model_dump())  
+        return {"success": True, "review_id": review_id}
     
 
-    async def list_spas(self):
-        """Show all spas with their services"""
-        spas = await self.spa_db.get_all()
+    async def get_reviews(self, spa_id: UUID):
+        """Get all reviews for a specific spa"""
 
-        for spa in spas:
-            services = await self.service_db.get_by_attribute("spa_id", spa["id"])  # Comparación correcta
+        reviews = await self.review_db.get_by_attribute("spa_id", str(spa_id))
 
-            print(f"Servicios para {spa['id']}: {services}")
-            
-            spa["services"] = services  # Agregamos los servicios al spa
+        if not reviews:
+            raise HTTPException(status_code=404, detail="No reviews found for this spa")
 
-        return spas
-
+        return reviews
