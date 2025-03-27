@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.services.facade import Facade
 from app.models.booking import Booking
-from uuid import UUID
 
 router = APIRouter()
 facade = Facade()
